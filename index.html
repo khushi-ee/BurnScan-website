@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BurnScan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset & design tokens ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:     #ffffff;
+  --bg:        #f4f7fb;
+  --bg2:       #eaf0f8;
+  --blue:      #1a56db;
+  --blue-dk:   #1447b2;
+  --blue-lt:   #e8f0fd;
+  --blue-mid:  #c7d9f8;
+  --border:    #d1dff5;
+  --text:      #0f1f3d;
+  --muted:     #5a718a;
+  --danger:    #b91c1c;
+  --warn-bg:   #fffbeb;
+  --warn-bd:   #fde68a;
+  --warn-tx:   #92400e;
+  --shadow-sm: 0 1px 4px rgba(26,86,219,.07);
+  --shadow:    0 2px 12px rgba(26,86,219,.09);
+  --shadow-md: 0 6px 28px rgba(26,86,219,.14);
+  --radius:    10px;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',sans-serif;font-size:15px;
+  line-height:1.6;min-height:100vh;
+}
+
+/* ── Topbar ────────────────────────────────────────────────────────────── */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:60px;
+  background:var(--white);border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--blue);display:flex;align-items:center;
+  justify-content:center;color:#fff;font-size:16px;
+}
+.logo-text{
+  font-family:'Lora',serif;font-size:20px;
+  color:var(--blue);font-weight:700;letter-spacing:-.3px;
+}
+.logo-text span{color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--muted)}
+.topbar-right b{color:var(--text);font-weight:600}
+.badge{
+  background:var(--blue-lt);color:var(--blue);
+  padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+}
+#btn-logout{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  padding:5px 14px;border-radius:8px;cursor:pointer;
+  font-size:12px;font-family:'Inter',sans-serif;transition:all .15s;
+}
+#btn-logout:hover{border-color:var(--danger);color:var(--danger)}
+
+/* ── Login overlay ─────────────────────────────────────────────────────── */
+#login-overlay{
+  position:fixed;inset:0;z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#dbeafe 0%,#f4f7fb 55%,#e8f0fd 100%);
+}
+.login-card{
+  width:100%;max-width:420px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:18px;padding:48px 40px;
+  box-shadow:var(--shadow-md);animation:fadeUp .32s ease both;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:none}
+}
+.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.login-icon{
+  width:46px;height:46px;border-radius:13px;
+  background:var(--blue);display:flex;align-items:center;
+  justify-content:center;font-size:22px;
+}
+.login-title{
+  font-family:'Lora',serif;font-size:30px;
+  color:var(--blue);font-weight:700;
+}
+.login-sub{
+  font-size:12px;color:var(--muted);font-weight:500;
+  margin-bottom:28px;padding-bottom:24px;
+  border-bottom:1px solid var(--bg2);
+}
+.f-label{
+  display:block;font-size:12px;font-weight:600;
+  color:var(--muted);margin-bottom:6px;margin-top:16px;
+}
+.f-input{
+  width:100%;padding:11px 14px;
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);
+  font-family:'Inter',sans-serif;font-size:14px;
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.f-input:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(26,86,219,.1);
+}
+#login-err{
+  display:none;margin-top:12px;padding:10px 14px;
+  background:#fef2f2;border:1px solid #fca5a5;
+  border-radius:8px;color:var(--danger);font-size:13px;
+}
+.btn-blue{
+  width:100%;margin-top:22px;padding:12px;
+  background:var(--blue);color:#fff;border:none;
+  border-radius:9px;font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;
+  transition:background .15s;letter-spacing:.2px;
+}
+.btn-blue:hover{background:var(--blue-dk)}
+.btn-blue:disabled{background:var(--bg2);color:var(--muted);cursor:not-allowed}
+.login-hint{
+  margin-top:22px;padding-top:20px;border-top:1px solid var(--bg2);
+  font-size:12px;color:var(--muted);text-align:center;line-height:2.2;
+}
+.login-hint code{
+  background:var(--blue-lt);color:var(--blue);
+  padding:2px 7px;border-radius:5px;
+  font-size:11px;font-weight:600;
+}
+
+/* ── App shell ─────────────────────────────────────────────────────────── */
+#app{display:none}
+
+/* ── Hero / upload ─────────────────────────────────────────────────────── */
+.hero{padding:52px 40px 36px;max-width:920px;margin:0 auto}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--blue);background:var(--blue-lt);
+  padding:5px 13px;border-radius:20px;margin-bottom:16px;
+}
+.hero-title{
+  font-family:'Lora',serif;font-size:40px;font-weight:700;
+  color:var(--text);letter-spacing:-.9px;line-height:1.13;margin-bottom:10px;
+}
+.hero-body{
+  font-size:14px;color:var(--muted);line-height:1.8;
+  max-width:520px;margin-bottom:32px;
+}
+
+/* upload card */
+.card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:14px;padding:28px;box-shadow:var(--shadow);
+}
+.upload-row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+
+/* drop zone */
+#drop-zone{
+  flex:1;min-width:260px;
+  border:2px dashed var(--blue-mid);border-radius:12px;
+  padding:36px 20px;text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s;
+  background:var(--blue-lt);
+}
+#drop-zone:hover,#drop-zone.over{border-color:var(--blue);background:#ddeafc}
+#drop-zone input{display:none}
+.drop-icon{font-size:32px;margin-bottom:10px;opacity:.8}
+.drop-main{font-size:13px;color:var(--text);font-weight:500}
+.drop-main b{color:var(--blue)}
+.drop-hint{font-size:11px;color:var(--muted);margin-top:4px}
+#fname{margin-top:10px;font-size:12px;color:var(--blue);font-weight:600}
+
+/* settings panel */
+.panel{display:flex;flex-direction:column;gap:16px;min-width:210px;max-width:240px}
+.p-label{
+  display:block;font-size:12px;font-weight:600;
+  color:var(--muted);margin-bottom:5px;
+}
+.p-input{
+  width:100%;padding:9px 12px;
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);
+  font-family:'Inter',sans-serif;font-size:13px;
+  outline:none;transition:border-color .15s;
+}
+.p-input:focus{border-color:var(--blue)}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:4px;
+  background:var(--blue-mid);border-radius:2px;
+  outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--blue);cursor:pointer;
+  border:2.5px solid var(--white);box-shadow:0 0 0 2px var(--blue);
+}
+.k-row{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:var(--muted);margin-top:4px;
+}
+#btn-analyse{
+  padding:12px 0;background:var(--blue);color:#fff;border:none;
+  border-radius:9px;font-family:'Inter',sans-serif;
+  font-weight:600;font-size:14px;cursor:pointer;
+  transition:background .15s;width:100%;
+}
+#btn-analyse:hover{background:var(--blue-dk)}
+#btn-analyse:disabled{
+  background:var(--bg2);color:var(--muted);cursor:not-allowed;
+}
+
+/* spinner */
+#spinner{
+  display:none;align-items:center;gap:12px;
+  padding:18px 0 4px;font-size:13px;color:var(--muted);
+}
+.spin{
+  width:18px;height:18px;flex-shrink:0;
+  border:2.5px solid var(--blue-mid);border-top-color:var(--blue);
+  border-radius:50%;animation:rot .7s linear infinite;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ── Results ───────────────────────────────────────────────────────────── */
+#results{display:none;padding:0 40px 64px;max-width:1400px;margin:0 auto}
+
+/* summary bar */
+.summary{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:13px;padding:18px 24px;
+  margin-bottom:24px;box-shadow:var(--shadow);
+}
+.deg-pill{
+  display:inline-block;padding:7px 18px;border-radius:100px;
+  font-size:13px;font-weight:600;white-space:nowrap;
+}
+.stats{display:flex;gap:12px;flex-wrap:wrap;flex:1}
+.stat{
+  flex:1;min-width:110px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:9px;padding:14px 16px;
+}
+.s-label{
+  font-size:10px;font-weight:600;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:4px;
+}
+.s-val{font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.s-unit{font-size:12px;color:var(--muted);font-weight:400;margin-left:2px}
+
+/* section label */
+.sec{
+  font-size:11px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:12px;margin-top:4px;
+}
+
+/* grid row */
+.grid-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:16px;margin-bottom:20px;
+}
+@media(max-width:860px){.grid-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.grid-row{grid-template-columns:1fr}}
+
+.gcell{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);
+}
+.gcell-head{
+  padding:9px 14px;background:var(--bg);
+  border-bottom:1px solid var(--border);
+  font-size:11px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;color:var(--muted);
+}
+.gcell img{
+  width:100%;display:block;aspect-ratio:1;
+  object-fit:contain;background:#f0f5ff;
+}
+
+/* downloads */
+.dl-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.btn-dl{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;background:var(--white);color:var(--blue);
+  border:1.5px solid var(--blue);border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:all .15s;
+}
+.btn-dl:hover{background:var(--blue);color:#fff}
+
+/* info box */
+.info-box{
+  background:var(--blue-lt);border:1px solid var(--blue-mid);
+  border-radius:10px;padding:16px 20px;
+  font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:20px;
+}
+.info-box b{color:var(--text)}
+.info-box code{
+  background:var(--white);border:1px solid var(--border);
+  padding:1px 6px;border-radius:4px;
+  font-size:12px;color:var(--blue);
+}
+
+/* disclaimer */
+.disclaimer{
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--warn-bg);border:1px solid var(--warn-bd);
+  border-radius:10px;padding:14px 18px;
+  font-size:12px;color:var(--warn-tx);line-height:1.7;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ════════════════════════════════════════════════════ -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-icon"></div>
+      <div class="login-title">BurnScan</div>
+    </div>
+    <div class="login-sub">AIIMS · Research Prototype</div>
+
+    <label class="f-label" for="u">Username</label>
+    <input class="f-input" id="u" type="text"
+           placeholder="e.g. dr.sharma" autocomplete="username"/>
+
+    <label class="f-label" for="pw">Password</label>
+    <input class="f-input" id="pw" type="password"
+           placeholder="••••••••" autocomplete="current-password"/>
+
+    <div id="login-err">Incorrect username or password. Please try again.</div>
+    <button class="btn-blue" id="btn-login">Sign in →</button>
+
+    <div class="login-hint">
+      Demo credentials<br>
+      <code>dr.sharma</code> / <code>aiims2024</code>
+      &nbsp;&nbsp;
+      <code>dr.mehta</code> / <code>burns123</code>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ APP ══════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Topbar -->
+  <nav class="topbar">
+    <a class="logo" href="#">
+      <div class="logo-mark">🔥</div>
+      <div class="logo-text">Burn<span>Scan</span></div>
+    </a>
+    <div class="topbar-right">
+      <span class="badge" id="role-badge">—</span>
+      <span>Signed in as <b id="user-label">—</b></span>
+      <button id="btn-logout">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="eyebrow">🏥 AIIMS Paediatric Burns · Research Prototype</div>
+    <h1 class="hero-title">Burn Wound Analysis</h1>
+    <p class="hero-body">
+      Upload a clinical photograph of the burn wound. The system runs the full
+      colour, depth and texture feature extraction pipeline and renders
+      block-average grid overlays — identical to the research notebook output.
+    </p>
+
+    <div class="card">
+      <div class="upload-row">
+
+        <!-- Drop zone -->
+        <div id="drop-zone" role="button" tabindex="0">
+          <input id="file-input" type="file"
+                 accept="image/jpeg,image/png" aria-hidden="true"/>
+          <div class="drop-icon">🖼️</div>
+          <div class="drop-main"><b>Click to upload</b> or drag &amp; drop</div>
+          <div class="drop-hint">JPG · PNG · max 20 MB</div>
+          <div id="fname"></div>
+        </div>
+
+        <!-- Settings panel -->
+        <div class="panel">
+
+          <div>
+            <span class="p-label">
+              Block size &nbsp; k = <b id="k-val" style="color:var(--blue)">10</b>
+            </span>
+            <input id="k-slider" type="range" min="5" max="30" step="5" value="10"/>
+            <div class="k-row">
+              <span>5 — fine</span><span>30 — coarse</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="p-label" for="pid">Patient ID</label>
+            <input class="p-input" id="pid" type="text"
+                   placeholder="e.g. P-2024-001"/>
+          </div>
+
+          <div>
+            <label class="p-label" for="age">Age (years)</label>
+            <input class="p-input" id="age" type="number"
+                   min="0" max="17" placeholder="5"/>
+          </div>
+
+          <div>
+            <label class="p-label" for="cause">Cause</label>
+            <select class="p-input" id="cause">
+              <option value="">Select…</option>
+              <option>Flame</option>
+              <option>Scald</option>
+              <option>Chemical</option>
+              <option>Electrical</option>
+              <option>Contact</option>
+              <option>Radiation</option>
+            </select>
+          </div>
+
+          <button id="btn-analyse" disabled>Analyse →</button>
+        </div>
+
+      </div><!-- /upload-row -->
+
+      <div id="spinner">
+        <div class="spin"></div>
+        <span>Running feature extraction pipeline…</span>
+      </div>
+    </div><!-- /card -->
+  </div><!-- /hero -->
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- Summary bar -->
+    <div style="padding:0 40px;max-width:1400px;margin:0 auto">
+      <div class="summary">
+        <div id="deg-pill" class="deg-pill">—</div>
+        <div class="stats">
+          <div class="stat">
+            <div class="s-label">Degree</div>
+            <div class="s-val" id="s-deg">—</div>
+          </div>
+          <div class="stat">
+            <div class="s-label">
+              Confidence
+              <span title="Heuristic score — not a validated probability"
+                    style="cursor:help;color:var(--blue)"> ⓘ</span>
+            </div>
+            <div class="s-val" id="s-conf">—<span class="s-unit">%</span></div>
+          </div>
+          <div class="stat">
+            <div class="s-label">
+              Est. TBSA
+              <span title="Placeholder — implement Lund & Browder for real TBSA"
+                    style="cursor:help;color:var(--blue)"> ⓘ</span>
+            </div>
+            <div class="s-val" id="s-tbsa">—<span class="s-unit">%</span></div>
+          </div>
+          <div class="stat">
+            <div class="s-label">Block k</div>
+            <div class="s-val" id="s-k">—<span class="s-unit">px</span></div>
+          </div>
+          <div class="stat">
+            <div class="s-label">Analysed at</div>
+            <div class="s-val" id="s-ts" style="font-size:16px">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grids + downloads -->
+    <div style="padding:0 40px 64px;max-width:1400px;margin:0 auto">
+
+      <div class="sec">Grid overlay outputs</div>
+      <div class="grid-row">
+        <div class="gcell">
+          <div class="gcell-head">📷 Original</div>
+          <img id="g-orig" src="" alt="Original image"/>
+        </div>
+        <div class="gcell">
+          <div class="gcell-head">🔴 Burn mask grid</div>
+          <img id="g-burn" src="" alt="Burn mask grid"/>
+        </div>
+        <div class="gcell">
+          <div class="gcell-head">🌑 Depth values</div>
+          <img id="g-depth" src="" alt="Depth values"/>
+        </div>
+        <div class="gcell">
+          <div class="gcell-head">🔷 Texture values</div>
+          <img id="g-tex" src="" alt="Texture values"/>
+        </div>
+      </div>
+
+      <div class="sec">Download grids</div>
+      <div class="dl-row" id="dl-row"></div>
+
+      <div class="info-box" id="info-box">—</div>
+
+      <div class="disclaimer">
+        <span style="font-size:16px;flex-shrink:0;margin-top:1px">⚠️</span>
+        <div>
+          <strong>Research prototype — not for clinical use.</strong><br>
+          This tool has not been clinically validated and must not be used as the sole
+          basis for any clinical decision. All outputs must be reviewed by a qualified
+          paediatric burns specialist.
+          AIIMS New Delhi · Paediatric Surgery Department.
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /results -->
+
+</div><!-- /app -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// ★ ONLY LINE TO CHANGE AFTER DEPLOYING ★
+// Replace with your Render API URL, e.g. "https://burnscan-api.onrender.com"
+// Leave as-is for local development (auto-falls back to localhost:8000)
+// ─────────────────────────────────────────────────────────────────────────────
+const API_URL = "https://burnscan-core-2.onrender.com";
+
+const BASE = (API_URL === "https://burnscan-core-2.onrender.com")
+  ? "http://localhost:8000"
+  : API_URL;
+
+// ── Credentials ───────────────────────────────────────────────────────────────
+// To add users: add a new entry here and in api/main.py (or a DB later)
+const USERS = {
+  "dr.sharma": { password: "aiims2024", role: "Doctor",   name: "Dr. Priya Sharma" },
+  "dr.mehta":  { password: "burns123",  role: "Resident", name: "Dr. Arjun Mehta"  },
+  "admin":     { password: "admin123",  role: "Admin",    name: "Admin"             },
+};
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+const $ov  = document.getElementById("login-overlay");
+const $app = document.getElementById("app");
+const $err = document.getElementById("login-err");
+
+function tryLogin() {
+  const u = document.getElementById("u").value.trim();
+  const p = document.getElementById("pw").value;
+  if (USERS[u] && USERS[u].password === p) {
+    $ov.style.display  = "none";
+    $app.style.display = "block";
+    document.getElementById("user-label").textContent = USERS[u].name;
+    document.getElementById("role-badge").textContent = USERS[u].role;
+    $err.style.display = "none";
+  } else {
+    $err.style.display = "block";
+  }
+}
+
+document.getElementById("btn-login").onclick = tryLogin;
+["u", "pw"].forEach(id =>
+  document.getElementById(id)
+    .addEventListener("keydown", e => e.key === "Enter" && tryLogin())
+);
+
+document.getElementById("btn-logout").onclick = () => {
+  $ov.style.display  = "flex";
+  $app.style.display = "none";
+  document.getElementById("results").style.display = "none";
+  selectedFile = null;
+  document.getElementById("fname").textContent          = "";
+  document.getElementById("btn-analyse").disabled       = true;
+  document.getElementById("u").value                    = "";
+  document.getElementById("pw").value                   = "";
+};
+
+// ── File upload / drag-drop ───────────────────────────────────────────────────
+let selectedFile = null;
+const $dz = document.getElementById("drop-zone");
+const $fi = document.getElementById("file-input");
+
+$dz.onclick  = () => $fi.click();
+$fi.onchange = () => setFile($fi.files[0]);
+
+$dz.addEventListener("dragover",  e => { e.preventDefault(); $dz.classList.add("over"); });
+$dz.addEventListener("dragleave", ()  => $dz.classList.remove("over"));
+$dz.addEventListener("drop", e => {
+  e.preventDefault();
+  $dz.classList.remove("over");
+  setFile(e.dataTransfer.files[0]);
+});
+$dz.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") $fi.click();
+});
+
+function setFile(f) {
+  if (!f) return;
+  if (!["image/jpeg", "image/jpg", "image/png"].includes(f.type)) {
+    alert("Please upload a JPG or PNG image."); return;
+  }
+  selectedFile = f;
+  document.getElementById("fname").textContent         = "✓  " + f.name;
+  document.getElementById("btn-analyse").disabled      = false;
+  // Show original preview immediately
+  const r = new FileReader();
+  r.onload = e => document.getElementById("g-orig").src = e.target.result;
+  r.readAsDataURL(f);
+}
+
+// ── k slider ──────────────────────────────────────────────────────────────────
+document.getElementById("k-slider").oninput = function () {
+  document.getElementById("k-val").textContent = this.value;
+};
+
+// ── Analyse ───────────────────────────────────────────────────────────────────
+document.getElementById("btn-analyse").onclick = async () => {
+  if (!selectedFile) return;
+
+  const $btn  = document.getElementById("btn-analyse");
+  const $spin = document.getElementById("spinner");
+  const $res  = document.getElementById("results");
+
+  $btn.disabled        = true;
+  $spin.style.display  = "flex";
+  $res.style.display   = "none";
+
+  const fd = new FormData();
+  fd.append("file",        selectedFile);
+  fd.append("k",           document.getElementById("k-slider").value);
+  fd.append("patient_id",  document.getElementById("pid").value   || "");
+  fd.append("patient_age", document.getElementById("age").value   || "");
+  fd.append("burn_cause",  document.getElementById("cause").value || "");
+
+  try {
+    const resp = await fetch(`${BASE}/api/analyse`, { method: "POST", body: fd });
+    if (!resp.ok) {
+      const e = await resp.json().catch(() => ({}));
+      throw new Error(e.detail || `Server returned ${resp.status}`);
+    }
+    renderResults(await resp.json());
+  } catch (e) {
+    alert(
+      "Analysis failed:\n\n" + e.message +
+      "\n\nCheck that the API is running and API_URL in index.html is set correctly."
+    );
+  } finally {
+    $spin.style.display = "none";
+    $btn.disabled       = false;
+  }
+};
+
+// ── Render results ────────────────────────────────────────────────────────────
+function renderResults(data) {
+  const c  = data.classification;
+  const ts = new Date(data.timestamp);
+
+  // Degree pill
+  const pill            = document.getElementById("deg-pill");
+  pill.textContent      = c.degree;
+  pill.style.background = c.colour + "1a";
+  pill.style.color      = c.colour;
+  pill.style.border     = `1.5px solid ${c.colour}50`;
+
+  // Stats
+  document.getElementById("s-deg").textContent =
+    c.degree.split(" ").slice(0, 2).join(" ");
+  document.getElementById("s-conf").innerHTML =
+    `${Math.round(c.confidence * 100)}<span class="s-unit">%</span>`;
+  document.getElementById("s-tbsa").innerHTML =
+    `${c.tbsa_pct}<span class="s-unit">%</span>`;
+  document.getElementById("s-k").innerHTML =
+    `${data.block_size_k}<span class="s-unit">px</span>`;
+  document.getElementById("s-ts").textContent =
+    ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  // Grid images
+  const g = data.grids;
+  document.getElementById("g-burn").src  = "data:image/png;base64," + g.burn_mask;
+  document.getElementById("g-depth").src = "data:image/png;base64," + g.depth;
+  document.getElementById("g-tex").src   = "data:image/png;base64," + g.texture;
+
+  // Download buttons
+  const dlRow = document.getElementById("dl-row");
+  dlRow.innerHTML = "";
+  [
+    ["⬇ Burn mask",  g.burn_mask,  "burn_mask.png"],
+    ["⬇ Depth grid", g.depth,      "depth_grid.png"],
+    ["⬇ Texture",    g.texture,    "texture_grid.png"],
+  ].forEach(([label, b64, fname]) => {
+    const a       = document.createElement("a");
+    a.className   = "btn-dl";
+    a.textContent = label;
+    a.href        = "data:image/png;base64," + b64;
+    a.download    = fname;
+    dlRow.appendChild(a);
+  });
+
+  // Info box
+  document.getElementById("info-box").innerHTML = `
+    <b>Analysis detail:</b><br>${c.explanation}<br><br>
+    <span style="font-size:12px">
+      ⓘ <b>Confidence</b> is a heuristic rule score (depth + texture) —
+      not a validated statistical probability. Replace
+      <code>classify_burn()</code> in <code>pipeline.py</code> with a
+      trained model once labelled AIIMS cases are available.<br>
+      ⓘ <b>TBSA</b> is estimated from image coverage fraction (placeholder).
+      Accurate paediatric TBSA requires a Lund &amp; Browder chart with
+      age correction.
+    </span>`;
+
+  document.getElementById("results").style.display = "block";
+  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+}
+</script>
+</body>
+</html>
