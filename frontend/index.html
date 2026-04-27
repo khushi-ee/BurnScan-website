@@ -389,9 +389,10 @@ input[type=range]::-webkit-slider-thumb{
 // Point this to wherever your FastAPI is running.
 // In Colab + ngrok: set this to the ngrok URL, e.g. "https://xxxx.ngrok-free.app"
 // In production: use your actual domain, e.g. "https://api.burnscan.aiims.ac.in"
-const API_BASE = window.location.hostname === "localhost"
-  ? "http://localhost:8000"
-  : window.location.origin;          // same origin if frontend + API share a host
+const API_BASE =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8000"
+    : "https://burnscan-website-production.up.railway.app";       // same origin if frontend + API share a host
 
 // ── Credentials (same as Streamlit version) ──────────────────────────────
 const USERS = {
