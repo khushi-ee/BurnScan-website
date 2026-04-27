@@ -1,0 +1,89 @@
+# =========================
+
+# 🔴 Python (Backend)
+
+# =========================
+
+**pycache**/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Virtual environments
+
+venv/
+env/
+.venv/
+
+# Environment variables
+
+.env
+
+# =========================
+
+# 🟡 Jupyter Notebooks
+
+# =========================
+
+.ipynb_checkpoints/
+
+# =========================
+
+# 🔵 Frontend (General)
+
+# =========================
+
+node_modules/
+dist/
+build/
+
+# Logs
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+
+# 🧪 OS / Editor files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# VS Code
+
+.vscode/
+
+# =========================
+
+# 📦 Large / unwanted files
+
+# =========================
+
+*.zip
+*.tar
+*.gz
+
+# =========================
+
+# 🚫 ML Models (if large)
+
+# =========================
+
+*.h5
+*.pt
+*.pth
+*.pkl
+
+# =========================
+
+# 📊 Data (optional)
+
+# =========================
+
+data/
+datasets/
